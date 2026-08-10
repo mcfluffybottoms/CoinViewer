@@ -9,7 +9,7 @@ class TCPServer
 {
     const int port = 8080;
     static readonly IPAddress address = IPAddress.Parse("127.0.0.1");
-    const string messageToSend = "Ok\n";
+    const string messageToSend = "OK\n";
     static async Task Main(string[] args)
     {
         Console.Title = "TCP Server";

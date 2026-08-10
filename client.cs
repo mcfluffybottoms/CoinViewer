@@ -9,7 +9,7 @@ class TCPClient
 {
     const int port = 8080;
     static readonly IPAddress address = IPAddress.Parse("127.0.0.1");
-    const string awaitedMessage = "Ok\n";
+    const string awaitedMessage = "OK\n";
     static async Task Main(string[] args)
     {
         Console.Title = "TCP Client";
