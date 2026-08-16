@@ -26,3 +26,6 @@ env/
 .coverage
 .tox/
 htmlcov/
+
+bin
+obj

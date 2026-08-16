@@ -10,33 +10,67 @@ class TCPClient
     const int port = 8080;
     static readonly IPAddress address = IPAddress.Parse("127.0.0.1");
     const string awaitedMessage = "OK\n";
-    static async Task Main(string[] args)
+    const int BUFFER_SIZE = 1024;
+    static async Task<int> Main(string[] args)
     {
         Console.Title = "TCP Client";
 
-        Console.WriteLine($"Client connecting to server: {address}:{port}");
-        using TcpClient client = new(address.ToString(), port);
-        Console.WriteLine($"Client connected to server: {address}:{port}");
+        TcpClient? client = ConnectToServer();
+        if (client == null)
+        {
+            return 1;
+        }
 
-        // get client stream
+        string message = await ReadData(client);
+
+        if (message.Length == 0)
+        {
+            Console.WriteLine($"Empty message received.");
+            return 1;
+        }
+
+        if (message == awaitedMessage)
+        {
+            Console.WriteLine("Message received!");
+            return 0;
+        }
+        else
+        {
+            Console.WriteLine($"Wrong message received: {message}");
+            return 1;
+        }
+    }
+
+    private static TcpClient ConnectToServer()
+    {
+        Console.WriteLine($"Client connecting to server: {address}:{port}");
+        TcpClient client = new();
+        try
+        {
+            client.Connect(address.ToString(), port);
+        }
+        catch (SocketException e)
+        {
+            Console.Error.WriteLine($"SocketException while connecting to server: {e.Message}.");
+            return null;
+        }
+        Console.WriteLine($"Client connected to server: {address}:{port}");
+        return client;
+    }
+
+    private static async Task<string> ReadData(TcpClient client)
+    {
         var stream = client.GetStream();
 
-        // read data from stream
-        byte[] buffer = new byte[1024];
-        int bytesRecieved = await stream.ReadAsync(buffer);
+        using MemoryStream memoryStream = new();
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int bytesReceived;
 
-        // convert to string 
-        if (bytesRecieved == 0) {
-            Console.WriteLine($"Zero bytes received.");
-            return;
+        while (bytesReceived = await stream.ReadAsync(buffer) > 0)
+        {
+            memoryStream.Write(buffer, 0, bytesReceived);
         }
 
-        var message = Encoding.UTF8.GetString(buffer, 0, bytesRecieved);
-        if (message == awaitedMessage) {
-            Console.WriteLine("Message received!");
-        }
-        else {
-            Console.WriteLine($"Wrong message received: {message}");
-        }
+        return Encoding.UTF8.GetString(memoryStream.ToArray());
     }
 }

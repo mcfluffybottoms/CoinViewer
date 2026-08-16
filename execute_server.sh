@@ -16,7 +16,7 @@ elif [ -f "server.class" ]; then
     echo "Запуск Java сервера..."
     java server
 elif [ -f "server.cs" ]; then
-    echo "Запуск С# клиента..."
+    echo "Запуск С# сервера..."
     dotnet run --no-build server.cs
 else
     echo "Не найден файл сервера для запуска"

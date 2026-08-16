@@ -24,7 +24,6 @@ class TCPServer
             {
                 TcpClient client = await server.AcceptTcpClientAsync();
                 Console.WriteLine($"[SERVER] Client connected on {client.Client.RemoteEndPoint}");
-
                 HandleClientAsync(client);
             }
         } catch (Exception e) { 
@@ -36,10 +35,14 @@ class TCPServer
 
     private static async Task HandleClientAsync(TcpClient client)
     {
-        using(var stream = client.GetStream())
+        try
         {
+            using NetworkStream stream = client.GetStream();
             byte[] response = Encoding.UTF8.GetBytes(messageToSend);
             await stream.WriteAsync(response);
+        } catch (OperationCanceledException e)
+        {
+            Console.Error.WriteLine($"Operation was cancelled for client {client.Client.RemoteEndPoint}: {e.Message}");
         }
 
         Console.WriteLine($"[SERVER] Client disconnected {client.Client.RemoteEndPoint}");
