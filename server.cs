@@ -27,9 +27,7 @@ class TCPServer
                 HandleClientAsync(client);
             }
         } catch (Exception e) { 
-            Console.WriteLine($"Error while accepting message:{e.Message}");
-        } finally { 
-            Console.WriteLine(""); 
+            Console.WriteLine($"[SERVER] Error while accepting message:{e.Message}");
         }
     }
 
@@ -42,9 +40,11 @@ class TCPServer
             await stream.WriteAsync(response);
         } catch (OperationCanceledException e)
         {
-            Console.Error.WriteLine($"Operation was cancelled for client {client.Client.RemoteEndPoint}: {e.Message}");
+            Console.Error.WriteLine($"[SERVER] Operation was cancelled for client {client.Client.RemoteEndPoint}: {e.Message}");
+        } finally
+        {
+            client.Close();
+            Console.WriteLine($"[SERVER] Client disconnected {client.Client.RemoteEndPoint}");
         }
-
-        Console.WriteLine($"[SERVER] Client disconnected {client.Client.RemoteEndPoint}");
     }
 }
