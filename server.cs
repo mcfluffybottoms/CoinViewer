@@ -10,7 +10,7 @@ class TCPServer
     const int port = 8080;
     static readonly IPAddress address = IPAddress.Parse("127.0.0.1");
     const string messageToSend = "OK\n";
-    static async Task Main(string[] args)
+    static async Task<int> Main(string[] args)
     {
         Console.Title = "TCP Server";
 
@@ -22,17 +22,19 @@ class TCPServer
         {
             while (true)
             {
-                TcpClient client = await server.AcceptTcpClientAsync();
-                Console.WriteLine($"[SERVER] Client connected on {client.Client.RemoteEndPoint}");
-                HandleClientAsync(client);
+                await HandleClientAsync(server);
             }
         } catch (Exception e) { 
-            Console.WriteLine($"[SERVER] Error while accepting message:{e.Message}");
+            Console.Error.WriteLine($"[SERVER] Error while accepting message: {e.Message}");
+            return 1;
         }
     }
 
-    private static async Task HandleClientAsync(TcpClient client)
+    private static async Task HandleClientAsync(TcpListener server)
     {
+        using TcpClient client = await server.AcceptTcpClientAsync();
+        string clientEndPoint = client.Client.RemoteEndPoint;
+        Console.WriteLine($"[SERVER] Client connected on {clientEndPoint}");
         try
         {
             using NetworkStream stream = client.GetStream();
@@ -40,11 +42,10 @@ class TCPServer
             await stream.WriteAsync(response);
         } catch (OperationCanceledException e)
         {
-            Console.Error.WriteLine($"[SERVER] Operation was cancelled for client {client.Client.RemoteEndPoint}: {e.Message}");
+            Console.Error.WriteLine($"[SERVER] Operation was cancelled for client {clientEndPoint}: {e.Message}");
         } finally
         {
-            client.Close();
-            Console.WriteLine($"[SERVER] Client disconnected {client.Client.RemoteEndPoint}");
+            Console.WriteLine($"[SERVER] Client {clientEndPoint} disconnected");
         }
     }
 }
