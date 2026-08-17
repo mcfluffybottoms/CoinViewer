@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Logging;
-using System.Text;
-
 class HedgedCurl(ILogger<HedgedCurl> logger)
 {
     internal class Options {
