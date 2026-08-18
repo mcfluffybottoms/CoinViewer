@@ -33,7 +33,7 @@ class TCPServer
     private static async Task HandleClientAsync(TcpListener server)
     {
         using TcpClient client = await server.AcceptTcpClientAsync();
-        string clientEndPoint = client.Client.RemoteEndPoint;
+        string clientEndPoint = client.Client?.RemoteEndPoint?.ToString() ?? "Unknown";
         Console.WriteLine($"[SERVER] Client connected on {clientEndPoint}");
         try
         {

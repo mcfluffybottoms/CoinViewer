@@ -41,7 +41,7 @@ class TCPClient
         }
     }
 
-    private static TcpClient ConnectToServer()
+    private static TcpClient? ConnectToServer()
     {
         Console.WriteLine($"Client connecting to server: {address}:{port}");
         TcpClient client = new();
@@ -66,8 +66,13 @@ class TCPClient
         byte[] buffer = new byte[BUFFER_SIZE];
         int bytesReceived;
 
-        while (bytesReceived = await stream.ReadAsync(buffer) > 0)
+        while (true)
         {
+            bytesReceived = await stream.ReadAsync(buffer);
+            if(bytesReceived == 0)
+            {
+                break;
+            }
             memoryStream.Write(buffer, 0, bytesReceived);
         }
 
