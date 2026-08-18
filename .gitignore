@@ -1,0 +1,30 @@
+## Build outputs
+bin/
+obj/
+
+## IDE and Editor files
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## User-specific / Local settings
+*.user
+appsettings.Development.json
+appsettings.Local.json
+
+## Secrets and Publish outputs
+publish/
+*.pubxml
+*.pfx
+*.pem
+
+## OS generated files
+.DS_Store
+Thumbs.db
