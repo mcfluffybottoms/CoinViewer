@@ -1,7 +1,15 @@
+using CoinViewer.DTOs;
+
 namespace CoinViewer.Models;
 
-
 public record CoinSymbol(string Symbol);
+
+public record CoinReturnView(Coin Symbol);
+
+public class CoinHistory {
+    public required string Symbol { get; set; }
+    public List<CoinHistoryEntry> History { get; set; } = [];
+}
 
 public class CoinInfo
 {

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using CoinViewer.Data;
+using CoinViewer.Services;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -7,6 +9,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpClient<GeckoAPIAccessService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
+    client.DefaultRequestHeaders.Add("x-cg-demo-api-key", "...");
+});
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSingleton<ICoinRepository, InMemoryCoinRepository>();
+builder.Services.AddScoped<CryptoDataService>();
 
 var app = builder.Build();
 
@@ -20,7 +32,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
-app.MapGet("/", () => "Hello, world!");
 
 app.Run();
