@@ -14,7 +14,7 @@ elif [ -f "hedgedcurl.java" ]; then
     javac hedgedcurl.java
 elif [ -f "hedgedcurl.cs" ]; then
     echo "Компиляция C# hedgedcurl..."
-    dotnet build hedgedcurl.cs
+    dotnet build
 else
     echo "Не найден файл hedgedcurl для компиляции"
     echo "Поддерживаемые файлы: hedgedcurl.{cpp,go,py,java}"
