@@ -32,20 +32,39 @@ class TCPServer
 
     private static async Task HandleClientAsync(TcpListener server)
     {
-        using TcpClient client = await server.AcceptTcpClientAsync();
-        string clientEndPoint = client.Client?.RemoteEndPoint?.ToString() ?? "Unknown";
-        Console.WriteLine($"[SERVER] Client connected on {clientEndPoint}");
         try
         {
-            using NetworkStream stream = client.GetStream();
-            byte[] response = Encoding.UTF8.GetBytes(messageToSend);
-            await stream.WriteAsync(response);
-        } catch (OperationCanceledException e)
+            using TcpClient client = await server.AcceptTcpClientAsync();
+            string clientEndPoint = client.Client?.RemoteEndPoint?.ToString() ?? "Unknown";
+            Console.WriteLine($"[SERVER] Client connected on {clientEndPoint}");
+
+            try
+            {
+                using NetworkStream stream = client.GetStream();
+                byte[] response = Encoding.UTF8.GetBytes(messageToSend);
+                await stream.WriteAsync(response);
+            } catch (OperationCanceledException e)
+            {
+                Console.Error.WriteLine($"[SERVER] Operation was cancelled for client {clientEndPoint}: {e.Message}");
+            } catch (IOException e) when (e.InnerException is SocketException)
+            {
+                Console.Error.WriteLine($"[SERVER] Socket error for {clientEndPoint}: {e.Message}");
+            }
+            catch (IOException e)
+            {
+                Console.Error.WriteLine($"[SERVER] Error while writing into stream for {clientEndPoint}: {e.Message}");
+            } catch (ObjectDisposedException e)
+            {
+                Console.Error.WriteLine($"[SERVER] NetworkStream was closed for {clientEndPoint}: {e.Message}");
+            }
+            finally
+            {
+                Console.WriteLine($"[SERVER] Client {clientEndPoint} disconnected");
+            }
+        } catch (SocketException e)
         {
-            Console.Error.WriteLine($"[SERVER] Operation was cancelled for client {clientEndPoint}: {e.Message}");
-        } finally
-        {
-            Console.WriteLine($"[SERVER] Client {clientEndPoint} disconnected");
+            Console.Error.WriteLine($"[SERVER] Socket error while accepting client: {e.Message}");
+            return;
         }
     }
 }

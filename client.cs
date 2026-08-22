@@ -15,7 +15,7 @@ class TCPClient
     {
         Console.Title = "TCP Client";
 
-        TcpClient? client = ConnectToServer();
+        using TcpClient? client = ConnectToServer();
         if (client == null)
         {
             return 1;
@@ -68,7 +68,28 @@ class TCPClient
 
         while (true)
         {
-            bytesReceived = await stream.ReadAsync(buffer);
+            try
+            {
+                bytesReceived = await stream.ReadAsync(buffer);
+            } catch (OperationCanceledException e)
+            {
+                Console.Error.WriteLine($"Operation was cancelled: {e.Message}");
+                break;
+            } catch (IOException e) when (e.InnerException is SocketException)
+            {
+                Console.Error.WriteLine($"Socket error: {e.Message}");
+                break;
+            }
+            catch (IOException e)
+            {
+                Console.Error.WriteLine($"Error while reading from stream: {e.Message}");
+                break;
+            } catch (ObjectDisposedException e)
+            {
+                Console.Error.WriteLine($"NetworkStream was closed: {e.Message}");
+                break;
+            }
+
             if(bytesReceived == 0)
             {
                 break;
