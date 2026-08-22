@@ -49,15 +49,13 @@ class TCPServer
             } catch (IOException e) when (e.InnerException is SocketException)
             {
                 Console.Error.WriteLine($"[SERVER] Socket error for {clientEndPoint}: {e.Message}");
-            }
-            catch (IOException e)
+            } catch (IOException e)
             {
                 Console.Error.WriteLine($"[SERVER] Error while writing into stream for {clientEndPoint}: {e.Message}");
             } catch (ObjectDisposedException e)
             {
                 Console.Error.WriteLine($"[SERVER] NetworkStream was closed for {clientEndPoint}: {e.Message}");
-            }
-            finally
+            } finally
             {
                 Console.WriteLine($"[SERVER] Client {clientEndPoint} disconnected");
             }

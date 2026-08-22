@@ -48,8 +48,7 @@ class TCPClient
         try
         {
             client.Connect(address.ToString(), port);
-        }
-        catch (SocketException e)
+        } catch (SocketException e)
         {
             Console.Error.WriteLine($"SocketException while connecting to server: {e.Message}.");
             return null;
@@ -79,8 +78,7 @@ class TCPClient
             {
                 Console.Error.WriteLine($"Socket error: {e.Message}");
                 break;
-            }
-            catch (IOException e)
+            } catch (IOException e)
             {
                 Console.Error.WriteLine($"Error while reading from stream: {e.Message}");
                 break;
@@ -90,7 +88,7 @@ class TCPClient
                 break;
             }
 
-            if(bytesReceived == 0)
+            if (bytesReceived == 0)
             {
                 break;
             }
