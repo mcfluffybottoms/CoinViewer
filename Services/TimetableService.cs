@@ -1,0 +1,80 @@
+using System.Data;
+using CoinViewer.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace CoinViewer.Services;
+
+public class TimetableService(IServiceScopeFactory scopeFactory)
+{
+    Timetable Timetable = new(true, 30, DateTime.Now, DateTime.Now.AddSeconds(30));
+    private TaskCompletionSource _scheduleChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private record Timestamp(
+        DateTime LastUpdate,
+        DateTime NextUpdate
+    );
+
+    private Timestamp UpdateTimeAll()
+    {
+        var currentTimetable = Volatile.Read(ref Timetable);
+        var timestamp = new Timestamp(DateTime.Now, DateTime.Now.AddSeconds(currentTimetable.IntervalSeconds));
+        var updatedTimetable = currentTimetable with
+        {
+            LastUpdate = timestamp.LastUpdate,
+            NextUpdate = timestamp.NextUpdate
+        };
+        Interlocked.Exchange(ref Timetable, updatedTimetable);
+        return timestamp;
+    }
+
+    public async Task<ReloadResult> UpdatePricesAsync(CancellationToken ct)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<CryptoDataService>();
+
+        var coins = service.GetCoinList(ct);
+        var tasks = coins.Select(coin => service.RefreshCoinPriceAsync(new CoinSymbol(coin.Symbol), ct));
+        await Task.WhenAll(tasks);
+
+        var timestamp = UpdateTimeAll();
+        return new ReloadResult(coins.Count, timestamp.LastUpdate);
+    }
+
+    public TimetableChange UpdateTimetable(TimetableChange change)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(change.IntervalSeconds, 3600);
+        ArgumentOutOfRangeException.ThrowIfLessThan(change.IntervalSeconds, 10);
+
+        var currentTimetable = Volatile.Read(ref Timetable);
+        var newTimetable = new Timetable(
+            change.Enabled,
+            change.IntervalSeconds,
+            currentTimetable.LastUpdate,
+            DateTime.Now.AddSeconds(change.IntervalSeconds)
+        );
+        Interlocked.Exchange(ref Timetable, newTimetable);
+
+        var oldSignal = Interlocked.Exchange(
+            ref _scheduleChanged, new(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+        oldSignal.TrySetResult();
+        return new TimetableChange(change.Enabled, change.IntervalSeconds);
+    }
+
+    public Timetable GetTimetable()
+    {
+        return Volatile.Read(ref Timetable);
+    }
+
+    public Task<ReloadResult> TriggerAsync(CancellationToken ct)
+    {
+        return UpdatePricesAsync(ct);
+    }
+
+    public Task WaitForChangeAsync(CancellationToken ct)
+    {
+        return Volatile.Read(ref _scheduleChanged).Task.WaitAsync(ct);
+    }
+}

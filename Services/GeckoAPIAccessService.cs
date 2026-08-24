@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace CoinViewer.Services;
 
-public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache)
+public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache) : IAPIAccessService
 {
     private readonly HttpClient _client = client;
     private readonly IDistributedCache _mapping = cache;
