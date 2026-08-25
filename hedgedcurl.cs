@@ -69,9 +69,9 @@ class HedgedCurl(ILogger<HedgedCurl> logger)
     private static string ShowHelp()
     {
         string helpText = """
-            Usage: hedgedcurl [OPTIONS] URL1 URL2 ...\n
-            Options:\n
-              -t, --timeout SECONDS -- Set timeout for all HTTP requests in seconds (Default: 15 seconds)\n
+            Usage: hedgedcurl [OPTIONS] URL1 URL2 ...
+            Options:
+              -t, --timeout SECONDS -- Set timeout for all HTTP requests in seconds (Default: 15 seconds)
               -h, --help -- Show this help message
         """;
         return helpText;
@@ -81,14 +81,14 @@ class HedgedCurl(ILogger<HedgedCurl> logger)
         Options options = new();
 
         for (int i = 0; i < args.Length; ++i) {
-            string arg = args[i].ToLower();
+            string arg = args[i];
 
-            if (arg == "-h" || arg == "--help") {
+            if (arg.ToLower() is "-h" or "--help") {
                 options.ShowHelp = true;
                 return options;
             }
 
-            if (arg == "-t" || arg == "--timeout") {
+            if (arg.ToLower() is "-t" or "--timeout") {
                 if (i + 1 >= args.Length || !int.TryParse(args[++i], out int timeout))
                 {
                     throw new ArgumentException("Timeout has no value.");
@@ -195,6 +195,7 @@ class Program
         using ILoggerFactory factory = LoggerFactory.Create(builder =>
         {
             builder.AddDebug();
+            builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Debug);
         });
 
