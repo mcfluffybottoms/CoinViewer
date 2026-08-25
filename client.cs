@@ -15,13 +15,16 @@ class TCPClient
     {
         Console.Title = "TCP Client";
 
-        using TcpClient? client = ConnectToServer();
+        CancellationTokenSource source = new();
+        CancellationToken token = source.Token;
+
+        using TcpClient? client = await ConnectToServer(token);
         if (client == null)
         {
             return 1;
         }
 
-        string message = await ReadData(client);
+        string message = await ReadData(client, token);
 
         if (message.Length == 0)
         {
@@ -41,13 +44,13 @@ class TCPClient
         }
     }
 
-    private static TcpClient? ConnectToServer()
+    private static async Task<TcpClient?> ConnectToServer(CancellationToken ct)
     {
         Console.WriteLine($"Client connecting to server: {address}:{port}");
         TcpClient client = new();
         try
         {
-            client.Connect(address.ToString(), port);
+            await client.ConnectAsync(address.ToString(), port, ct);
         } catch (SocketException e)
         {
             Console.Error.WriteLine($"SocketException while connecting to server: {e.Message}.");
@@ -57,7 +60,7 @@ class TCPClient
         return client;
     }
 
-    private static async Task<string> ReadData(TcpClient client)
+    private static async Task<string> ReadData(TcpClient client, CancellationToken ct)
     {
         var stream = client.GetStream();
 
@@ -69,7 +72,7 @@ class TCPClient
         {
             try
             {
-                bytesReceived = await stream.ReadAsync(buffer);
+                bytesReceived = await stream.ReadAsync(buffer, ct);
             } catch (OperationCanceledException e)
             {
                 Console.Error.WriteLine($"Operation was cancelled: {e.Message}");
@@ -92,7 +95,7 @@ class TCPClient
             {
                 break;
             }
-            memoryStream.Write(buffer, 0, bytesReceived);
+            await memoryStream.WriteAsync(buffer, 0, bytesReceived, ct);
         }
 
         return Encoding.UTF8.GetString(memoryStream.ToArray());

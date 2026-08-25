@@ -55,6 +55,9 @@ class TCPServer
             } catch (ObjectDisposedException e)
             {
                 Console.Error.WriteLine($"[SERVER] NetworkStream was closed for {clientEndPoint}: {e.Message}");
+            } catch (Exception e)
+            {
+                Console.Error.WriteLine($"[SERVER] Unexpected exception for {clientEndPoint}: {e.Message}");
             } finally
             {
                 Console.WriteLine($"[SERVER] Client {clientEndPoint} disconnected");
@@ -63,6 +66,9 @@ class TCPServer
         {
             Console.Error.WriteLine($"[SERVER] Socket error while accepting client: {e.Message}");
             return;
+        } catch (Exception e)
+        {
+            Console.Error.WriteLine($"[SERVER] Unexpected exception while accepting client: {e.Message}");
         }
     }
 }
