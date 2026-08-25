@@ -1,9 +1,11 @@
 using CoinViewer.Models;
 using CoinViewer.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoinViewer.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("crypto")]
 public class CryptoController(CryptoDataService cryptoDataService) : ControllerBase {
