@@ -1,7 +1,7 @@
 using System.Data;
+using CoinViewer.DTOs;
 using CoinViewer.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace CoinViewer.Services;
 
@@ -28,20 +28,20 @@ public class TimetableService(IServiceScopeFactory scopeFactory)
         return timestamp;
     }
 
-    public async Task<ReloadResult> UpdatePricesAsync(CancellationToken ct)
+    public async Task<ReloadResultDto> UpdatePricesAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<CryptoDataService>();
 
         var coins = service.GetCoinList(ct);
-        var tasks = coins.Select(coin => service.RefreshCoinPriceAsync(new CoinSymbol(coin.Symbol), ct));
+        var tasks = coins.Select(coin => service.RefreshCoinPriceAsync(new CoinSymbolDto(coin.Symbol), ct));
         await Task.WhenAll(tasks);
 
         var timestamp = UpdateTimeAll();
-        return new ReloadResult(coins.Count, timestamp.LastUpdate);
+        return new ReloadResultDto(coins.Count, timestamp.LastUpdate);
     }
 
-    public TimetableChange UpdateTimetable(TimetableChange change)
+    public TimetableChangeDto UpdateTimetable(TimetableChangeDto change)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(change.IntervalSeconds, 3600);
         ArgumentOutOfRangeException.ThrowIfLessThan(change.IntervalSeconds, 10);
@@ -60,7 +60,7 @@ public class TimetableService(IServiceScopeFactory scopeFactory)
         );
 
         oldSignal.TrySetResult();
-        return new TimetableChange(change.Enabled, change.IntervalSeconds);
+        return new TimetableChangeDto(change.Enabled, change.IntervalSeconds);
     }
 
     public Timetable GetTimetable()
@@ -68,7 +68,7 @@ public class TimetableService(IServiceScopeFactory scopeFactory)
         return Volatile.Read(ref Timetable);
     }
 
-    public Task<ReloadResult> TriggerAsync(CancellationToken ct)
+    public Task<ReloadResultDto> TriggerAsync(CancellationToken ct)
     {
         return UpdatePricesAsync(ct);
     }

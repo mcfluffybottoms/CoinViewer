@@ -29,7 +29,7 @@ public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache) :
         public decimal Usd { get; set; }
     }
 
-    private async Task<SymbolToId> GetCoinMapping(CoinSymbol symbol, CancellationToken ct = default)
+    private async Task<SymbolToId?> GetCoinMapping(CoinSymbolDto symbol, CancellationToken ct = default)
     {
         string key = $"coin-mapping:{symbol.Symbol.ToLowerInvariant()}";
         byte[]? cachedMapping = await _mapping.GetAsync(key, ct);
@@ -38,8 +38,11 @@ public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache) :
             return JsonSerializer.Deserialize<SymbolToId>(cachedMapping) ??
                 throw new InvalidOperationException($"Cached mapping for '{symbol.Symbol}' is invalid.");
         }
-        var coin = await SearchForCoin(symbol, ct)
-            ?? throw new KeyNotFoundException($"Coin '{symbol.Symbol}' not found.");
+        var coin = await SearchForCoin(symbol, ct);
+        if(coin is null)
+        {
+            return null;
+        }
         byte[] json = JsonSerializer.SerializeToUtf8Bytes(coin);
 
         await _mapping.SetAsync(key, json,
@@ -58,16 +61,20 @@ public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache) :
             ?? throw new InvalidOperationException("CoinGecko returned an empty response while looking up price.");
         return response.Values.First().Usd;
     }
-    private async Task<SymbolToId?> SearchForCoin(CoinSymbol symbol, CancellationToken ct = default)
+    private async Task<SymbolToId?> SearchForCoin(CoinSymbolDto symbol, CancellationToken ct = default)
     {
         string url = QueryHelpers.AddQueryString("search", "query", symbol.Symbol);
         SearchResponse response = await _client.GetFromJsonAsync<SearchResponse>(url, ct) ?? new SearchResponse();
         return response?.Coins.FirstOrDefault(x => x.Symbol.Equals(symbol.Symbol, StringComparison.OrdinalIgnoreCase));
     }
-    public async Task<Coin> GetCoin(CoinSymbol symbol, CancellationToken ct = default)
+    public async Task<Coin?> GetCoin(CoinSymbolDto symbol, CancellationToken ct = default)
     {
         Console.WriteLine($"BaseAddress: {_client.BaseAddress}");
         var mapping = await GetCoinMapping(symbol, ct);
+        if (mapping is null)
+        {
+            return null;
+        }
         decimal price = await GetCoinPriceById(mapping.Id, ct);
         return new Coin
         {

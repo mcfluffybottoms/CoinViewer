@@ -1,4 +1,5 @@
 using CoinViewer.DTOs;
+using CoinViewer.Models;
 
 namespace CoinViewer.Data;
 
@@ -6,7 +7,7 @@ public class InMemoryCoinRepository : ICoinRepository
 {
     private readonly Dictionary<string, Coin> coins = [];
     private readonly Dictionary<string, List<CoinHistoryEntry>> coinHistory = [];
-    public bool CoinExists(Models.CoinSymbol symbol)
+    public bool CoinExists(CoinSymbolDto symbol)
     {
         return coins.ContainsKey(symbol.Symbol);
     }
@@ -44,7 +45,7 @@ public class InMemoryCoinRepository : ICoinRepository
         });
         return true;
     }
-    public bool DeleteCoinFromDb(Models.CoinSymbol symbol)
+    public bool DeleteCoinFromDb(CoinSymbolDto symbol)
     {
         if (!coins.ContainsKey(symbol.Symbol))
         {
@@ -54,7 +55,7 @@ public class InMemoryCoinRepository : ICoinRepository
         coinHistory.Remove(symbol.Symbol);
         return true;
     }
-    public List<CoinHistoryEntry> GetCoinHistory(Models.CoinSymbol symbol)
+    public List<CoinHistoryEntry> GetCoinHistory(CoinSymbolDto symbol)
     {
         if (coinHistory.TryGetValue(symbol.Symbol, out var history))
         {
@@ -63,7 +64,7 @@ public class InMemoryCoinRepository : ICoinRepository
 
         return [];
     }
-    public bool TryGetCoinInfo(Models.CoinSymbol symbol, out Coin? coin)
+    public bool TryGetCoinInfo(CoinSymbolDto symbol, out Coin? coin)
     {
         return coins.TryGetValue(symbol.Symbol, out coin);
     }

@@ -6,13 +6,3 @@ public record Timetable(
     DateTime? LastUpdate,
     DateTime? NextUpdate
 );
-
-public record TimetableChange(
-    bool Enabled,
-    int IntervalSeconds
-);
-
-public record ReloadResult(
-    int UpdatedCount,
-    DateTime Timestamp
-);

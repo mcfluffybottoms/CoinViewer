@@ -8,7 +8,8 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace CoinViewer.Services;
 
+
 public interface IAPIAccessService
 {
-    public Task<Coin> GetCoin(CoinSymbol symbol, CancellationToken ct = default);
+    public Task<Coin?> GetCoin(CoinSymbolDto symbol, CancellationToken ct = default);
 }

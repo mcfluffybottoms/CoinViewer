@@ -1,4 +1,4 @@
-namespace CoinViewer.DTOs;
+namespace CoinViewer.Models;
 
 public class CoinHistoryEntry
 {
