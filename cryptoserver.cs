@@ -4,6 +4,8 @@ using CoinViewer.Models;
 using CoinViewer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -60,13 +62,18 @@ static void AddCryptoSearchServices(WebApplicationBuilder builder)
 {
     builder.Services.AddScoped<CryptoDataService>();
     var repositorySettings = builder.Configuration.GetSection("Repository");
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(
+            builder.Configuration.GetConnectionString("DefaultConnection")
+        )
+    );
     if (repositorySettings["CryptoType"] == "InMemory")
     {
         builder.Services.AddSingleton<ICoinRepository, InMemoryCoinRepository>();
     }
     else if (repositorySettings["CryptoType"] == "SQLite")
     {
-
+        builder.Services.AddScoped<ICoinRepository, SQLiteCoinRepository>();
     }
     else
     {

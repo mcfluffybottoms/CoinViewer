@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using CoinViewer.DTOs;
 using CoinViewer.Models;
 
@@ -36,6 +37,7 @@ public class InMemoryCoinRepository : ICoinRepository
         coins[coin.Symbol] = coin;
         coinHistory[coin.Symbol].Enqueue(new CoinHistoryEntry
         {
+            Symbol = coin.Symbol,
             Price = coin.Price,
             Timestamp = coin.LastUpdated
         });
@@ -69,6 +71,7 @@ public class InMemoryCoinRepository : ICoinRepository
     {
         coinHistory[coin.Symbol].Enqueue(new CoinHistoryEntry
         {
+            Symbol = coin.Symbol,
             Price = coin.Price,
             Timestamp = coin.LastUpdated
         });

@@ -1,5 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CoinViewer.Models;
 
+[Table("Coins")]  
 public class Coin
 {
     public required string Symbol { get; set; }
