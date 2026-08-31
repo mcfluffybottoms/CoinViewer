@@ -15,6 +15,9 @@ elif [ -f "cryptoserver.go" ]; then
 elif [ -f "cryptoserver.class" ]; then
     echo "Запуск Java crypto сервера..."
     java cryptoserver
+elif [ -f "cryptoserver.cs" ]; then
+    echo "Запуск С# crypto сервера..."
+    dotnet run --no-build
 else
     echo "Не найден исполняемый файл crypto сервера"
     echo "Убедитесь что файл скомпилирован или существует cryptoserver.{py,js,go}"

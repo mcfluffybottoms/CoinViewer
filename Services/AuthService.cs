@@ -55,10 +55,6 @@ public class AuthService(IConfiguration config, IUserRepository repo) : IAuthSer
         }
 
         PasswordStats stats = new(register.Password);
-        if(stats.ContainsBadSymbols())
-        {
-            return RegisterResult.BAD_PASSWORD_SYMBOLS;
-        }
         if(!stats.IsAcceptable())
         {
             return RegisterResult.BAD_PASSWORD_FORMAT;
@@ -76,6 +72,11 @@ public class AuthService(IConfiguration config, IUserRepository repo) : IAuthSer
     {
         const string allowedSymbols = "!@#$%";
         readonly long NumberCount, SmallLetterCount, BigLetterCount, SymbolsCount, BadSymbols, Length;
+        const long NumberCountMin = 0;
+        const long SmallLetterCountMin = 0;
+        const long BigLetterCountMin = 0;
+        const long SymbolsCountMin = 0;
+        const long LengthMin = 0;
         public PasswordStats(string password)
         {
             Length = password.Length;
@@ -105,13 +106,13 @@ public class AuthService(IConfiguration config, IUserRepository repo) : IAuthSer
         }
         public bool IsAcceptable()
         {
-            return 
-                BadSymbols == 0 && 
-                Length >= 8 && 
-                NumberCount > 0 && 
-                SmallLetterCount > 0 && 
-                BigLetterCount > 0 && 
-                SymbolsCount > 0;
+            return
+                BadSymbols == 0 &&
+                Length >= LengthMin &&
+                NumberCount >= NumberCountMin &&
+                SmallLetterCount >= SmallLetterCountMin &&
+                BigLetterCount >= BigLetterCountMin &&
+                SymbolsCount >= SymbolsCountMin;
         }
         public bool ContainsBadSymbols()
         {

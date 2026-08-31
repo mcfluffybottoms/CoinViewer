@@ -89,8 +89,8 @@ public class CryptoDataService(ICoinRepository repo, IAPIAccessService client)
     {
         _repo.TryGetCoinInfo(symbol, out Coin? coin);
         List<CoinHistoryEntry> history = _repo.GetCoinHistory(symbol);
-        var firstPrice = history.First().Price;
-        var lastPrice = history.Last().Price;
+        var firstPrice = history.MinBy(coin => coin.Timestamp)!.Price;
+        var lastPrice = history.MaxBy(coin => coin.Timestamp)!.Price;
         var stats = new CoinStatisticsDto
         {
             MinPrice = coin is null ? 0 : history.MinBy(coin => coin.Price)!.Price,

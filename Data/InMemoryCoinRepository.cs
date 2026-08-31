@@ -6,12 +6,13 @@ namespace CoinViewer.Data;
 public class InMemoryCoinRepository : ICoinRepository
 {
     private readonly Dictionary<string, Coin> coins = [];
-    private readonly Dictionary<string, List<CoinHistoryEntry>> coinHistory = [];
+    private readonly Dictionary<string, Queue<CoinHistoryEntry>> coinHistory = [];
+    private const int LIMIT = 100;
     public bool CoinExists(CoinSymbolDto symbol)
     {
         return coins.ContainsKey(symbol.Symbol);
     }
-    public List<Coin> GetAllCoins()
+    public List<Coin> GetAllCoins() 
     {
         return [.. coins.Values];
     }
@@ -22,13 +23,8 @@ public class InMemoryCoinRepository : ICoinRepository
             return false;
         }
         coins.Add(coin.Symbol, coin);
-        coinHistory[coin.Symbol] = [
-            new CoinHistoryEntry
-            {
-                Price = coin.Price,
-                Timestamp = coin.LastUpdated
-            }
-        ];
+        coinHistory[coin.Symbol] = [];
+        AddCoinHistoryEntry(coin);
         return true;
     }
     public bool ChangeCoin(Coin coin)
@@ -38,7 +34,7 @@ public class InMemoryCoinRepository : ICoinRepository
             return false;
         }
         coins[coin.Symbol] = coin;
-        coinHistory[coin.Symbol].Add(new CoinHistoryEntry
+        coinHistory[coin.Symbol].Enqueue(new CoinHistoryEntry
         {
             Price = coin.Price,
             Timestamp = coin.LastUpdated
@@ -59,7 +55,7 @@ public class InMemoryCoinRepository : ICoinRepository
     {
         if (coinHistory.TryGetValue(symbol.Symbol, out var history))
         {
-            return history;
+            return [.. history.TakeLast(LIMIT)];
         }
 
         return [];
@@ -67,5 +63,18 @@ public class InMemoryCoinRepository : ICoinRepository
     public bool TryGetCoinInfo(CoinSymbolDto symbol, out Coin? coin)
     {
         return coins.TryGetValue(symbol.Symbol, out coin);
+    }
+
+    private void AddCoinHistoryEntry(Coin coin)
+    {
+        coinHistory[coin.Symbol].Enqueue(new CoinHistoryEntry
+        {
+            Price = coin.Price,
+            Timestamp = coin.LastUpdated
+        });
+        if(coinHistory[coin.Symbol].Count > LIMIT)
+        {
+            coinHistory[coin.Symbol].Dequeue();
+        }
     }
 } 

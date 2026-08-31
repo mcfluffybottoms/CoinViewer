@@ -699,6 +699,7 @@ class CryptoServerTestRunner:
                 self.error(f"Получение расписания не удалось: {data['error']}")
                 return False
 
+            print(data)
             required_fields = ["enabled", "interval_seconds"]
             for field in required_fields:
                 if field not in data:

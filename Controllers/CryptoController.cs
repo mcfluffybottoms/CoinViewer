@@ -14,12 +14,12 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
     private readonly CryptoDataService _cryptoDataService = cryptoDataService;
 
     [HttpGet]
-    [ProducesResponseType(typeof(CoinDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CoinsReturnView), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult GetCoinList()
     {
         var coinList = _cryptoDataService.GetCoinList();
-        return Ok(coinList);
+        return Ok(new CoinsReturnView([ ..coinList.Select(c => Mapper.ToDto(c))]));
     }
 
     [HttpPost]
@@ -32,14 +32,14 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         var (result, addedCoin) = await _cryptoDataService.AddCoinAsync(coin);
         return result switch
         {
-            AddResult.ADDED => Ok(addedCoin),
+            AddResult.ADDED => Ok(new CoinReturnView(addedCoin!)),
             AddResult.CONFLICT => Conflict(new ErrorDto("Symbol is already added.")),
             AddResult.API_NOT_FOUND => BadRequest(new ErrorDto("Symbol does not exist.")),
             _ => StatusCode(500),
         };
     }
 
-    [HttpGet("/{symbol}")]
+    [HttpGet("{symbol}")]
     [ProducesResponseType(typeof(CoinDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status404NotFound)]
     public IActionResult GetCoinInfo(string symbol)
@@ -52,7 +52,7 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         return Ok(coinInfo);
     }
 
-    [HttpPut("/{symbol}/refresh")]
+    [HttpPut("{symbol}/refresh")]
     [ProducesResponseType(typeof(CoinDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -68,7 +68,7 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         };
     }
 
-    [HttpGet("/{symbol}/history")]
+    [HttpGet("{symbol}/history")]
     [ProducesResponseType(typeof(CoinHistoryDto), StatusCodes.Status200OK)]
     public IActionResult GetCoinHistory(string symbol)
     {
@@ -76,14 +76,14 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         return Ok(coinHistory);
     }
 
-    [HttpGet("/{symbol}/stats")]
+    [HttpGet("{symbol}/stats")]
     public IActionResult GetCoinStats(string symbol)
     {
         var stats = _cryptoDataService.GetCoinStats(new CoinSymbolDto(symbol));
         return Ok(stats);
     }
 
-    [HttpDelete("/{symbol}")]
+    [HttpDelete("{symbol}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status404NotFound)]
     public IActionResult DeleteCoin(string symbol)
@@ -93,6 +93,6 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         {
             return NotFound(new ErrorDto("Symbol was not added."));
         }
-        return Ok();
+        return Ok(new{});
     }
 }

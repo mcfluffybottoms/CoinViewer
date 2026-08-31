@@ -15,6 +15,9 @@ elif [ -f "cryptoserver.js" ]; then
 elif [ -f "cryptoserver.java" ]; then
     echo "Компиляция Java crypto сервера..."
     javac cryptoserver.java
+elif [ -f "cryptoserver.cs" ]; then
+    echo "Компиляция C# crypto сервера..."
+    dotnet build
 else
     echo "Не найден файл cryptoserver для компиляции"
     echo "Поддерживаемые файлы: cryptoserver.{cpp,go,py,js,java}"

@@ -1,4 +1,5 @@
 using CoinViewer.DTOs;
+using CoinViewer.Models;
 using CoinViewer.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,8 @@ public class TimetableController(TimetableService service) : ControllerBase
     [ProducesResponseType(typeof(CoinDto), StatusCodes.Status200OK)]
     public IActionResult GetTimetable()
     {
-        return Ok(service.GetTimetable());
+        Timetable table = service.GetTimetable();
+        return Ok(Mapper.ToDto(table));
     }
 
     [HttpPut]
@@ -30,7 +32,7 @@ public class TimetableController(TimetableService service) : ControllerBase
         }
     }
 
-    [HttpPost("/trigger")]
+    [HttpPost("trigger")]
     [ProducesResponseType(typeof(ReloadResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> TriggerUpdate(CancellationToken ct)

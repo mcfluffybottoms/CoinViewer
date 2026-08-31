@@ -25,6 +25,23 @@ public class AuthController(IAuthService service) : ControllerBase
         };
     }
 
+    private IActionResult LoginAfterRegistration(RegisterDto register)
+    {
+        var (loginResult, token) = service.Login(new LoginDto
+        {
+            Username = register.Username,
+            Password = register.Password
+        });
+
+        return loginResult switch
+        {
+            AuthResult.SUCCESS => Ok(new { token }),
+            AuthResult.DENIED => Unauthorized(new ErrorDto("Invalid credentials")),
+            AuthResult.EMPTY_FIELD => BadRequest(new ErrorDto("Username or password is empty")),
+            _ => StatusCode(500)
+        };
+    }
+
     [HttpPost("register")]
     [ProducesResponseType(typeof(TokenDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status400BadRequest)]
@@ -34,7 +51,7 @@ public class AuthController(IAuthService service) : ControllerBase
         var result = service.Register(register);
         return result switch
         {
-            RegisterResult.SUCCESS => Ok(),
+            RegisterResult.SUCCESS => LoginAfterRegistration(register),
             RegisterResult.DUBLICATE_USER => Conflict("User already exists."),
             RegisterResult.BAD_PASSWORD_SYMBOLS => BadRequest("Password contains invalid symbols."),
             RegisterResult.BAD_PASSWORD_FORMAT => BadRequest("Password format is invalid."),
