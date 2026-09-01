@@ -22,7 +22,7 @@ static void AddAuthServices(WebApplicationBuilder builder)
     }
     else if (repositorySettings["AuthType"] == "SQLite")
     {
-
+        builder.Services.AddScoped<IUserRepository, SQLiteUserRepository>();
     }
     else
     {
@@ -88,10 +88,11 @@ static void AddAPIConnectionServices(WebApplicationBuilder builder)
     var APISettings = builder.Configuration.GetSection("API");
     if (APISettings["Type"] == "GeckoAPI")
     {
-        builder.Services.AddHttpClient<GeckoAPIAccessService>(client =>
+        var apiKey = builder.Configuration["CoinGecko:ApiKey"] ?? throw new InvalidOperationException("Missing CoinGecko API key.");
+        builder.Services.AddHttpClient<IAPIAccessService, GeckoAPIAccessService>(client =>
         {
             client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
-            client.DefaultRequestHeaders.Add("x-cg-demo-api-key", "...");
+            client.DefaultRequestHeaders.Add("x-cg-demo-api-key", apiKey);
         });
     }
     else if (APISettings["Type"] == "Debug")
