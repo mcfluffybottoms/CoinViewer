@@ -21,13 +21,15 @@ public class SQLiteCoinRepository(AppDbContext context) : ICoinRepository
 
     public bool ChangeCoin(Coin coin)
     {
-        bool exists = context.Coins.Any(c => c.Symbol == coin.Symbol);
-        if (!exists)
+        var existingCoin = context.Coins.SingleOrDefault(x => x.Symbol == coin.Symbol);
+        if (existingCoin is null)
         {
             return false;
         }
-        context.Update(coin);
-        AddCoinToHistoryNoSave(coin);
+        existingCoin.LastUpdated = coin.LastUpdated;
+        existingCoin.Name = coin.Name;
+        existingCoin.Price = coin.Price;
+        AddCoinToHistoryNoSave(existingCoin);
         context.SaveChanges();
         return true;
     }
