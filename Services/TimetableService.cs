@@ -7,7 +7,7 @@ namespace CoinViewer.Services;
 
 public class TimetableService(IServiceScopeFactory scopeFactory)
 {
-    Timetable Timetable = new(true, 30, DateTime.Now, DateTime.Now.AddSeconds(30));
+    Timetable Timetable = new(true, 30, DateTime.UtcNow, DateTime.UtcNow.AddSeconds(30));
     private TaskCompletionSource _scheduleChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private record Timestamp(
@@ -18,7 +18,7 @@ public class TimetableService(IServiceScopeFactory scopeFactory)
     private Timestamp UpdateTimeAll()
     {
         var currentTimetable = Volatile.Read(ref Timetable);
-        var timestamp = new Timestamp(DateTime.Now, DateTime.Now.AddSeconds(currentTimetable.IntervalSeconds));
+        var timestamp = new Timestamp(DateTime.UtcNow, DateTime.UtcNow.AddSeconds(currentTimetable.IntervalSeconds));
         var updatedTimetable = currentTimetable with
         {
             LastUpdate = timestamp.LastUpdate,
@@ -41,17 +41,19 @@ public class TimetableService(IServiceScopeFactory scopeFactory)
         return new ReloadResultDto(coins.Count, timestamp.LastUpdate);
     }
 
-    public TimetableChangeDto UpdateTimetable(TimetableChangeDto change)
+    public TimetableChangeDto? UpdateTimetable(TimetableChangeDto change)
     {
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(change.IntervalSeconds, 3600);
-        ArgumentOutOfRangeException.ThrowIfLessThan(change.IntervalSeconds, 10);
+        if (change.IntervalSeconds > 3600 || change.IntervalSeconds < 10)
+        {
+            return null;   
+        }
 
         var currentTimetable = Volatile.Read(ref Timetable);
         var newTimetable = new Timetable(
             change.Enabled,
             change.IntervalSeconds,
             currentTimetable.LastUpdate,
-            DateTime.Now.AddSeconds(change.IntervalSeconds)
+            DateTime.UtcNow.AddSeconds(change.IntervalSeconds)
         );
         Interlocked.Exchange(ref Timetable, newTimetable);
 

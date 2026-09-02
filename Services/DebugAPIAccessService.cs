@@ -19,7 +19,7 @@ public class DebugAPIAccessService : IAPIAccessService
             Symbol = symbol.Symbol,
             Name = symbol.Symbol + "Coin",
             Price = Math.Round(price, 2),
-            LastUpdated = DateTime.Now
+            LastUpdated = DateTime.UtcNow
         });
     }
 }

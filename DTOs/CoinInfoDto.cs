@@ -12,6 +12,15 @@ public class CoinInfoDto
 
 public class CoinStatisticsDto
 {
+    public CoinStatisticsDto()
+    {
+        MinPrice = 0;
+        MaxPrice = 0;
+        AvgPrice = 0;
+        PriceChange = 0;
+        PriceChangePercent = 0;
+        RecordsCount = 0;
+    }
     [JsonPropertyName("min_price")]
     public required decimal MinPrice { get; set; }
     [JsonPropertyName("max_price")]

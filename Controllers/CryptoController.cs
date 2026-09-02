@@ -32,7 +32,7 @@ public class CryptoController(CryptoDataService cryptoDataService) : ControllerB
         var (result, addedCoin) = await _cryptoDataService.AddCoinAsync(coin);
         return result switch
         {
-            AddResult.ADDED => Ok(new CoinReturnView(addedCoin!)),
+            AddResult.ADDED => StatusCode(201, new CoinReturnView(addedCoin!)),
             AddResult.CONFLICT => Conflict(new ErrorDto("Symbol is already added.")),
             AddResult.API_NOT_FOUND => BadRequest(new ErrorDto("Symbol does not exist.")),
             _ => StatusCode(500),

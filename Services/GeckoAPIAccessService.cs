@@ -81,7 +81,7 @@ public class GeckoAPIAccessService(HttpClient client, IDistributedCache cache) :
             Symbol = mapping.Symbol,
             Price = price,
             Name = mapping.Name,
-            LastUpdated = DateTime.Now
+            LastUpdated = DateTime.UtcNow
         };
     }
 }

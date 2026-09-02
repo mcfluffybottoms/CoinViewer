@@ -18,7 +18,7 @@ public class AuthController(IAuthService service) : ControllerBase
         var (result, token) = service.Login(login);
         return result switch
         {
-            AuthResult.SUCCESS => Ok(new { token }),
+            AuthResult.SUCCESS => Ok(new TokenDto(token!)),
             AuthResult.DENIED => Unauthorized(new ErrorDto("Invalid credentials")),
             AuthResult.EMPTY_FIELD => BadRequest(new ErrorDto("Username or password is empty")),
             _ => StatusCode(500),
@@ -35,7 +35,7 @@ public class AuthController(IAuthService service) : ControllerBase
 
         return loginResult switch
         {
-            AuthResult.SUCCESS => Ok(new { token }),
+            AuthResult.SUCCESS => StatusCode(201, new TokenDto(token!)),
             AuthResult.DENIED => Unauthorized(new ErrorDto("Invalid credentials")),
             AuthResult.EMPTY_FIELD => BadRequest(new ErrorDto("Username or password is empty")),
             _ => StatusCode(500)
@@ -52,10 +52,10 @@ public class AuthController(IAuthService service) : ControllerBase
         return result switch
         {
             RegisterResult.SUCCESS => LoginAfterRegistration(register),
-            RegisterResult.DUBLICATE_USER => Conflict("User already exists."),
-            RegisterResult.BAD_PASSWORD_SYMBOLS => BadRequest("Password contains invalid symbols."),
-            RegisterResult.BAD_PASSWORD_FORMAT => BadRequest("Password format is invalid."),
-            RegisterResult.REGISTER_FAILED_INTERNAL => StatusCode(500, "Registration failed."),
+            RegisterResult.DUBLICATE_USER => Conflict(new ErrorDto("User already exists.")),
+            RegisterResult.BAD_PASSWORD_SYMBOLS => BadRequest(new ErrorDto("Password contains invalid symbols.")),
+            RegisterResult.BAD_PASSWORD_FORMAT => BadRequest(new ErrorDto("Password format is invalid.")),
+            RegisterResult.REGISTER_FAILED_INTERNAL => StatusCode(500, new ErrorDto("Registration failed.")),
             _ => StatusCode(500),
         };
     }

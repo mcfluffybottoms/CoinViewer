@@ -89,21 +89,35 @@ public class CryptoDataService(ICoinRepository repo, IAPIAccessService client)
     {
         _repo.TryGetCoinInfo(symbol, out Coin? coin);
         List<CoinHistoryEntry> history = _repo.GetCoinHistory(symbol);
+        if (coin is null)
+        {
+            var statis = new CoinStatisticsDto
+            {
+                MinPrice = 0, MaxPrice = 0, AvgPrice = 0,
+                PriceChange = 0, PriceChangePercent = 0,
+                RecordsCount = 0
+            };
+            return new CoinInfoDto {
+                Symbol = symbol.Symbol,
+                CurrentPrice = 0,
+                Stats = statis
+            };
+        }
         var firstPrice = history.MinBy(coin => coin.Timestamp)!.Price;
         var lastPrice = history.MaxBy(coin => coin.Timestamp)!.Price;
         var stats = new CoinStatisticsDto
         {
-            MinPrice = coin is null ? 0 : history.MinBy(coin => coin.Price)!.Price,
-            MaxPrice = coin is null ? 0 : history.MaxBy(coin => coin.Price)!.Price,
-            AvgPrice = coin is null ? 0 : history.Average(coin => coin.Price),
-            PriceChange = coin is null ? 0 : lastPrice - firstPrice,
-            PriceChangePercent = coin is null ? 0 : (firstPrice == 0 ? 0 : (lastPrice - firstPrice) / firstPrice * 100),
+            MinPrice = history.MinBy(coin => coin.Price)!.Price,
+            MaxPrice = history.MaxBy(coin => coin.Price)!.Price,
+            AvgPrice = history.Average(coin => coin.Price),
+            PriceChange = lastPrice - firstPrice,
+            PriceChangePercent = firstPrice == 0 ? 0 : (lastPrice - firstPrice) / firstPrice * 100,
             RecordsCount = history.Count
         };
 
         return new CoinInfoDto {
             Symbol = symbol.Symbol,
-            CurrentPrice = coin is null ? 0 : coin.Price,
+            CurrentPrice = coin.Price,
             Stats = stats
         };
     }

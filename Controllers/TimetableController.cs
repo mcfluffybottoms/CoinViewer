@@ -1,11 +1,13 @@
 using CoinViewer.DTOs;
 using CoinViewer.Models;
 using CoinViewer.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoinViewer.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("schedule")]
 public class TimetableController(TimetableService service) : ControllerBase
@@ -26,8 +28,11 @@ public class TimetableController(TimetableService service) : ControllerBase
     {
         try
         {
-            return Ok(service.UpdateTimetable(change));
-        } catch(Exception) {
+            var changeResult = service.UpdateTimetable(change);
+            return changeResult is null ? 
+                BadRequest(new ErrorDto("Timer should be in range [10, 3600] seconds.")) : 
+                Ok(service.UpdateTimetable(change));
+        } catch (Exception) {
             return StatusCode(500, new ErrorDto("Internal server error while changing timetable"));
         }
     }
@@ -40,7 +45,7 @@ public class TimetableController(TimetableService service) : ControllerBase
         try
         {
             return Ok(await service.TriggerAsync(ct));
-        } catch(Exception) {
+        } catch (Exception) {
             return StatusCode(500, new ErrorDto("Internal server error while force-updating"));
         }
         

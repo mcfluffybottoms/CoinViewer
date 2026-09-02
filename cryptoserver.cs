@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using CoinViewer.Data;
-using CoinViewer.Models;
 using CoinViewer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -153,6 +152,13 @@ AddTimetableServices(builder);
 
 // ---------- BUILD ---------- //
 var app = builder.Build();
+
+var repositorySettings = builder.Configuration.GetSection("Repository");
+if (repositorySettings["CryptoType"] == "SQLite")
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
