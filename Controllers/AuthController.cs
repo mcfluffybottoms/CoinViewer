@@ -1,0 +1,62 @@
+using CoinViewer.DTOs;
+using CoinViewer.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace CoinViewer.Controllers;
+
+[ApiController]
+[Route("auth")]
+public class AuthController(IAuthService service) : ControllerBase
+{
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(TokenDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status401Unauthorized)]
+    public IActionResult Login(LoginDto login)
+    {
+        var (result, token) = service.Login(login);
+        return result switch
+        {
+            AuthResult.SUCCESS => Ok(new TokenDto(token!)),
+            AuthResult.DENIED => Unauthorized(new ErrorDto("Invalid credentials")),
+            AuthResult.EMPTY_FIELD => BadRequest(new ErrorDto("Username or password is empty")),
+            _ => StatusCode(500),
+        };
+    }
+
+    private IActionResult LoginAfterRegistration(RegisterDto register)
+    {
+        var (loginResult, token) = service.Login(new LoginDto
+        {
+            Username = register.Username,
+            Password = register.Password
+        });
+
+        return loginResult switch
+        {
+            AuthResult.SUCCESS => StatusCode(201, new TokenDto(token!)),
+            AuthResult.DENIED => Unauthorized(new ErrorDto("Invalid credentials")),
+            AuthResult.EMPTY_FIELD => BadRequest(new ErrorDto("Username or password is empty")),
+            _ => StatusCode(500)
+        };
+    }
+
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(TokenDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorDto), StatusCodes.Status409Conflict)]
+    public IActionResult Register(RegisterDto register)
+    {
+        var result = service.Register(register);
+        return result switch
+        {
+            RegisterResult.SUCCESS => LoginAfterRegistration(register),
+            RegisterResult.DUBLICATE_USER => Conflict(new ErrorDto("User already exists.")),
+            RegisterResult.BAD_PASSWORD_SYMBOLS => BadRequest(new ErrorDto("Password contains invalid symbols.")),
+            RegisterResult.BAD_PASSWORD_FORMAT => BadRequest(new ErrorDto("Password format is invalid.")),
+            RegisterResult.REGISTER_FAILED_INTERNAL => StatusCode(500, new ErrorDto("Registration failed.")),
+            _ => StatusCode(500),
+        };
+    }
+}
